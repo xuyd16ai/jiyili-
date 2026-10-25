@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff9ef">
+  <meta name="description" content="记忆小岛：适合小朋友的轻松记忆小游戏。记顺序、翻翻配对、找出变化。">
+  <title>记忆小岛 · 小小记忆冒险</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #25364d;
+      --muted: #67768b;
+      --paper: #fff9ef;
+      --white: #fffefa;
+      --line: #e9e4d8;
+      --blue: #dff3f2;
+      --blue-strong: #78c6c2;
+      --peach: #ffe4cf;
+      --yellow: #ffdf8d;
+      --lavender: #e9e3ff;
+      --green: #dff0d9;
+      --coral: #f58f72;
+      --shadow: 0 18px 45px rgba(49, 69, 94, .09);
+      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 4%, rgba(255, 222, 141, .28), transparent 20rem),
+        radial-gradient(circle at 95% 18%, rgba(170, 222, 218, .28), transparent 22rem),
+        var(--paper);
+    }
+    button { font: inherit; }
+    button:focus-visible, summary:focus-visible { outline: 3px solid #5079bd; outline-offset: 3px; }
+    .page { width: min(760px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 30px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 19px; font-weight: 850; letter-spacing: -.04em; }
+    .brand-mark {
+      display: grid; place-items: center; width: 42px; height: 42px; border-radius: 15px;
+      background: var(--blue); font-size: 23px; box-shadow: inset 0 -3px 0 rgba(49, 112, 116, .08);
+    }
+    .top-stats { display: flex; align-items: center; gap: 9px; }
+    .stat-pill, .time-pill {
+      display: flex; align-items: center; gap: 7px; padding: 9px 13px; border-radius: 999px;
+      background: rgba(255, 255, 255, .74); border: 1px solid rgba(233, 228, 216, .8);
+      color: #526176; font-size: 13px; font-weight: 750;
+    }
+    .hero { display: grid; grid-template-columns: 1.16fr .84fr; align-items: center; gap: 28px; padding: 32px 0 30px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: #638587; font-size: 12px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 20px; height: 2px; border-radius: 3px; background: var(--blue-strong); }
+    h1 { max-width: 650px; margin: 12px 0 13px; font-size: clamp(32px, 4.2vw, 51px); line-height: 1.12; letter-spacing: -.055em; }
+    .hero-copy { max-width: 540px; margin: 0; color: var(--muted); font-size: 16px; line-height: 1.75; }
+    .hero-art {
+      position: relative; min-height: 205px; overflow: hidden; display: grid; place-items: center;
+      border-radius: 30px; background: linear-gradient(145deg, #e3f5ef 0%, #dff0f5 52%, #e9e4fb 100%);
+      box-shadow: inset 0 -9px 0 rgba(86, 149, 144, .07);
+    }
+    .hero-art::before, .hero-art::after { content: ""; position: absolute; border-radius: 50%; background: rgba(255,255,255,.54); }
+    .hero-art::before { width: 250px; height: 115px; bottom: -44px; left: -35px; }
+    .hero-art::after { width: 240px; height: 105px; right: -25px; bottom: -40px; }
+    .art-sun { position: absolute; right: 27px; top: 20px; font-size: 35px; }
+    .art-island { position: relative; z-index: 1; display: flex; align-items: end; gap: 9px; margin-top: 18px; }
+    .art-island span { display: inline-grid; place-items: center; border-radius: 23px; background: rgba(255,255,255,.73); box-shadow: 0 10px 20px rgba(55,91,110,.09); }
+    .art-island span:nth-child(1) { width: 74px; height: 78px; font-size: 41px; transform: rotate(-7deg); }
+    .art-island span:nth-child(2) { width: 94px; height: 102px; font-size: 55px; }
+    .art-island span:nth-child(3) { width: 70px; height: 73px; font-size: 39px; transform: rotate(6deg); }
+    .art-note { position: absolute; z-index: 2; left: 18px; top: 16px; padding: 7px 11px; border-radius: 999px; background: rgba(255,255,255,.72); color: #57717e; font-size: 11px; font-weight: 800; }
+    .main-grid { display: block; }
+    .game-card, .side-card {
+      border: 1px solid rgba(233, 228, 216, .88); border-radius: 25px; background: rgba(255, 254, 250, .92); box-shadow: var(--shadow);
+    }
+    .game-card { padding: clamp(16px, 3.5vw, 28px); }
+    .mode-picker { margin-bottom: 18px; }
+    .mode-picker summary {
+      display: flex; align-items: center; gap: 8px; min-height: 40px; width: fit-content; padding: 0 13px;
+      border: 1px solid #e9e7de; border-radius: 13px; background: #fffefa; color: #647186;
+      cursor: pointer; font-size: 12px; font-weight: 800; list-style: none;
+    }
+    .mode-picker summary::-webkit-details-marker { display: none; }
+    .mode-picker summary::after { content: "+"; color: #758394; font-size: 17px; }
+    .mode-picker[open] summary::after { content: "−"; }
+    .mode-current { color: #82909d; font-weight: 650; }
+    .mode-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding: 5px; border-radius: 17px; background: #f5f1e9; }
+    .mode-tab {
+      display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 43px; border: 0; border-radius: 13px;
+      color: #69768a; background: transparent; font-size: 13px; font-weight: 800; cursor: pointer; transition: .18s ease;
+    }
+    .mode-tab[aria-pressed="true"] { color: var(--ink); background: #fffefa; box-shadow: 0 3px 9px rgba(61,76,93,.09); }
+    .mode-tab:hover { color: var(--ink); }
+    .mode-icon { font-size: 18px; }
+    .game-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 22px 2px 14px; }
+    .game-head h2 { margin: 0 0 5px; font-size: 21px; letter-spacing: -.035em; }
+    .game-head p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .level-tag { flex: none; padding: 7px 10px; border-radius: 999px; background: var(--yellow); color: #765821; font-size: 11px; font-weight: 850; }
+    .stage {
+      min-height: 340px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      padding: 22px; border: 1px solid #eceee9; border-radius: 20px; background: #f7f8f5; text-align: center;
+    }
+    .stage-message { min-height: 22px; margin: 0; color: #607184; font-size: 13px; font-weight: 700; }
+    .stage-message.good { color: #37877a; }
+    .stage-message.soft { color: #bb7159; }
+    .big-emoji { font-size: 42px; line-height: 1; }
+    .sequence-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .memory-chip {
+      display: grid; place-items: center; width: clamp(58px, 8vw, 76px); height: clamp(67px, 9vw, 86px);
+      border: 1px solid rgba(197, 220, 213, .85); border-radius: 18px; background: rgba(255,255,255,.83);
+      font-size: 35px; box-shadow: 0 5px 12px rgba(55, 91, 110, .06);
+    }
+    .memory-chip.empty { color: #b9c5c7; font-size: 24px; background: rgba(255,255,255,.48); border-style: dashed; }
+    .choice-grid { display: grid; grid-template-columns: repeat(4, minmax(52px, 66px)); justify-content: center; gap: 9px; }
+    .choice, .change-tile {
+      display: grid; place-items: center; min-width: 54px; min-height: 59px; border: 1px solid rgba(205, 214, 218, .85);
+      border-radius: 16px; background: rgba(255,255,255,.83); font-size: 30px; cursor: pointer;
+      box-shadow: 0 4px 9px rgba(55, 91, 110, .04); transition: transform .14s ease, background .14s ease, border .14s ease;
+    }
+    .choice:hover, .change-tile:hover { transform: translateY(-2px); border-color: #8bcac3; background: white; }
+    .choice:active, .change-tile:active { transform: scale(.96); }
+    .choice[aria-pressed="true"] { background: #e3f4f0; border-color: #79beb7; }
+    .small-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .primary, .quiet-button {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 45px; padding: 0 18px;
+      border: 0; border-radius: 14px; font-size: 13px; font-weight: 850; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .primary { color: #fff; background: #3c8f8c; box-shadow: 0 5px 0 #327b78; }
+    .primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 0 #327b78; }
+    .primary:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #327b78; }
+    .primary:disabled { cursor: not-allowed; opacity: .45; box-shadow: none; }
+    .quiet-button { color: #637187; background: rgba(255,255,255,.8); border: 1px solid #e3e7e4; }
+    .quiet-button:hover { background: #fff; }
+    .pair-grid { display: grid; grid-template-columns: repeat(4, minmax(52px, 70px)); gap: 10px; justify-content: center; }
+    .pair-card {
+      width: clamp(54px, 8vw, 72px); height: clamp(63px, 9vw, 82px); border: 1px solid #d8e3e1; border-radius: 16px;
+      background: linear-gradient(145deg, #b6ded7, #8fc7c0); color: #fff; font-size: 26px; cursor: pointer;
+      box-shadow: 0 4px 0 #79b4ad; transition: transform .16s ease, background .16s ease;
+    }
+    .pair-card:hover { transform: translateY(-2px); }
+    .pair-card.open, .pair-card.matched { color: var(--ink); background: #fffefa; box-shadow: 0 4px 0 #e8e6dc; }
+    .pair-card.matched { border-color: #a9d9c0; background: #eff9ef; }
+    .change-grid { display: grid; grid-template-columns: repeat(3, 72px); gap: 9px; }
+    .change-tile { width: 72px; height: 68px; }
+    .change-tile.selected { border: 2px solid #e89a75; background: #fff0e6; }
+    .change-tile.correct { border: 2px solid #71b7a0; background: #e7f7ed; }
+    .success-mark { display: grid; place-items: center; width: 75px; height: 75px; border-radius: 50%; background: #fff; box-shadow: 0 8px 20px rgba(55,91,110,.08); font-size: 39px; animation: pop .35s ease-out; }
+    @keyframes pop { 0% { transform: scale(.7); } 75% { transform: scale(1.09); } 100% { transform: scale(1); } }
+    .side-stack { display: grid; gap: 14px; }
+    .side-card { padding: 18px; }
+    .side-title { display: flex; align-items: center; gap: 9px; margin: 0 0 13px; font-size: 15px; font-weight: 850; letter-spacing: -.02em; }
+    .progress-list { display: grid; gap: 10px; }
+    .progress-row { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 14px; background: #f7f5ee; }
+    .progress-row:nth-child(1) { background: #eff7f3; }
+    .progress-row:nth-child(2) { background: #f4f1ff; }
+    .progress-row:nth-child(3) { background: #fff3e9; }
+    .progress-emoji { font-size: 19px; text-align: center; }
+    .progress-name { font-size: 12px; font-weight: 800; }
+    .progress-note { display: block; margin-top: 2px; color: #8992a0; font-size: 10px; font-weight: 650; }
+    .dots { display: flex; gap: 3px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #dddcd4; }
+    .dot.filled { background: #f2bd59; }
+    .island-tip { padding: 15px; border-radius: 17px; background: var(--peach); }
+    .island-tip strong { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; font-size: 12px; }
+    .island-tip p { margin: 0; color: #765f54; font-size: 12px; line-height: 1.6; }
+    details.parent-note { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 13px; }
+    details.parent-note summary { color: #6d7c8d; cursor: pointer; font-size: 12px; font-weight: 800; }
+    details.parent-note p { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .footer { display: flex; justify-content: center; gap: 18px; padding: 16px 4px 0; color: #87909e; font-size: 11px; line-height: 1.6; }
+    .footer span:last-child { text-align: right; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 800px) {
+      .page { width: min(700px, calc(100% - 28px)); padding-top: 18px; }
+    }
+    @media (max-width: 560px) {
+      .page { width: calc(100% - 22px); padding-top: 12px; }
+      .brand { font-size: 16px; }
+      .brand-mark { width: 37px; height: 37px; border-radius: 13px; font-size: 20px; }
+      .game-card { padding: 14px; border-radius: 21px; }
+      .mode-picker { margin-bottom: 14px; }
+      .mode-picker summary { min-height: 38px; }
+      .mode-tabs { gap: 4px; padding: 4px; }
+      .mode-tab { min-height: 42px; flex-direction: column; gap: 1px; font-size: 10px; }
+      .mode-icon { font-size: 16px; }
+      .game-head { padding: 17px 3px 12px; }
+      .game-head h2 { font-size: 20px; }
+      .game-head p { max-width: 280px; font-size: 12px; }
+      .stage { min-height: 310px; padding: 15px 10px; gap: 14px; }
+      .memory-chip { width: 57px; height: 65px; font-size: 30px; border-radius: 15px; }
+      .choice-grid { grid-template-columns: repeat(4, 55px); gap: 7px; }
+      .choice { min-width: 55px; min-height: 57px; font-size: 27px; }
+      .pair-grid { grid-template-columns: repeat(4, 54px); gap: 7px; }
+      .pair-card { width: 54px; height: 63px; border-radius: 14px; }
+      .change-grid { grid-template-columns: repeat(3, 64px); gap: 7px; }
+      .change-tile { width: 64px; height: 61px; }
+      .side-stack { grid-template-columns: 1fr; }
+      .side-stack .side-card:last-child { grid-column: auto; }
+      .footer { padding-top: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">🏝️</span><span>记忆小岛</span></div>
+    </header>
+
+    <main class="main-grid">
+      <section class="game-card" aria-label="记忆小游戏">
+        <details class="mode-picker">
+          <summary><span>换个小游戏</span><span class="mode-current" id="modeCurrent">现在玩：记顺序</span></summary>
+          <div class="mode-tabs" role="group" aria-label="选择小游戏">
+            <button class="mode-tab" data-mode="sequence" aria-pressed="true"><span class="mode-icon" aria-hidden="true">🐚</span><span>记顺序</span></button>
+            <button class="mode-tab" data-mode="pairs" aria-pressed="false"><span class="mode-icon" aria-hidden="true">🧩</span><span>翻翻配对</span></button>
+            <button class="mode-tab" data-mode="change" aria-pressed="false"><span class="mode-icon" aria-hidden="true">🔍</span><span>找变化</span></button>
+          </div>
+        </details>
+        <div class="game-head">
+          <div><h2 id="gameTitle">贝壳排排队</h2><p id="gameHint">记住它们出现的顺序，然后按顺序点回来。</p></div>
+        </div>
+        <div class="stage" id="stage" aria-live="polite" aria-atomic="true"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>想休息时，随时可以停下来。</span>
+    </footer>
+  </div>
+  <div class="sr-only" id="announcement" aria-live="assertive"></div>
+  <script>
+    (() => {
+      const STORAGE_KEY = "memory-island-progress-v1";
+      const creatures = [
+        { emoji: "🐚", name: "贝壳" }, { emoji: "⭐", name: "星星" }, { emoji: "🐠", name: "小鱼" },
+        { emoji: "🦀", name: "螃蟹" }, { emoji: "🐢", name: "海龟" }, { emoji: "🐬", name: "海豚" },
+        { emoji: "🍉", name: "西瓜" }, { emoji: "🍓", name: "草莓" }, { emoji: "🍋", name: "柠檬" },
+        { emoji: "🌻", name: "向日葵" }, { emoji: "🦋", name: "蝴蝶" }, { emoji: "🍄", name: "蘑菇" },
+        { emoji: "🐸", name: "青蛙" }, { emoji: "🦉", name: "猫头鹰" }, { emoji: "🐞", name: "瓢虫" },
+        { emoji: "🪁", name: "风筝" }, { emoji: "🚲", name: "自行车" }, { emoji: "🎈", name: "气球" },
+        { emoji: "🍪", name: "饼干" }, { emoji: "☂️", name: "雨伞" }, { emoji: "🐧", name: "企鹅" }
+      ];
+      const modeInfo = {
+        sequence: { title: "贝壳排排队", hint: "记住它们出现的顺序，然后按顺序点回来。", tip: "悄悄把图案念出来，或在脑海里排一排，也是一种记忆小妙招。", icon: "🐚", label: "记顺序", skill: "顺序记忆" },
+        pairs: { title: "海底翻翻乐", hint: "翻开小卡片，找到藏起来的一对好朋友。", tip: "记住已经翻过的位置，下一次就能更快找到好朋友。", icon: "🧩", label: "翻翻配对", skill: "图像记忆" },
+        change: { title: "小岛侦探", hint: "看一看小岛上的伙伴，找出后来换了位置的那个。", tip: "试着从左到右慢慢看一遍，看看谁换了新模样。", icon: "🔍", label: "找变化", skill: "观察记忆" }
+      };
+      const today = new Date().toLocaleDateString("en-CA");
+      const defaultProgress = () => ({ date: today, stars: 0, rounds: 0, levels: { sequence: 1, pairs: 1, change: 1 } });
+      let progress = readProgress();
+      let game = { mode: "sequence", stage: "watch", level: 1, sequence: [], input: [], choices: [], changeBefore: [], changeAfter: [], changedAt: -1, pairCards: [], opened: [], matched: [], locked: false, message: "", messageType: "" };
+
+      const stageEl = document.getElementById("stage");
+      const titleEl = document.getElementById("gameTitle");
+      const hintEl = document.getElementById("gameHint");
+      const announceEl = document.getElementById("announcement");
+
+      function readProgress() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+          if (!saved || typeof saved !== "object") return defaultProgress();
+          const base = defaultProgress();
+          const sameDay = saved.date === today;
+          return {
+            date: today,
+            stars: sameDay ? Math.max(0, Number(saved.stars) || 0) : 0,
+            rounds: sameDay ? Math.max(0, Number(saved.rounds) || 0) : 0,
+            levels: {
+              sequence: clampLevel(saved.levels?.sequence),
+              pairs: clampLevel(saved.levels?.pairs),
+              change: clampLevel(saved.levels?.change)
+            }
+          };
+        } catch { return defaultProgress(); }
+      }
+      function clampLevel(value) { return Math.min(5, Math.max(1, Number(value) || 1)); }
+      function saveProgress() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch { /* Continue without saved progress. */ }
+      }
+      function randomItems(count, pool = creatures) {
+        const copy = [...pool];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy.slice(0, count);
+      }
+      function shuffle(items) { return randomItems(items.length, items); }
+      function setMode(mode) {
+        game.mode = mode;
+        document.querySelectorAll(".mode-tab").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === mode)));
+        document.getElementById("modeCurrent").textContent = "现在玩：" + modeInfo[mode].label;
+        document.querySelector(".mode-picker").open = false;
+        startRound(true);
+      }
+      function startRound(first = false) {
+        game.level = progress.levels[game.mode];
+        game.message = "";
+        game.messageType = "";
+        game.input = [];
+        game.opened = [];
+        game.matched = [];
+        game.locked = false;
+        if (game.mode === "sequence") {
+          const length = Math.min(6, 2 + game.level);
+          game.sequence = randomItems(length);
+          game.choices = shuffle([...game.sequence, ...randomItems(Math.max(4, 8 - length))]);
+          game.stage = "watch";
+        } else if (game.mode === "change") {
+          const count = Math.min(9, 5 + game.level);
+          game.changeBefore = randomItems(count);
+          game.changeAfter = [...game.changeBefore];
+          game.changedAt = Math.floor(Math.random() * count);
+          const replacements = creatures.filter(item => !game.changeBefore.some(before => before.emoji === item.emoji));
+          game.changeAfter[game.changedAt] = randomItems(1, replacements)[0];
+          game.stage = "watch";
+        } else {
+          const pairCount = game.level <= 2 ? 3 : game.level <= 4 ? 4 : 5;
+          const selected = randomItems(pairCount);
+          game.pairCards = shuffle([...selected, ...selected].map((item, index) => ({ ...item, cardId: index })));
+          game.stage = "play";
+        }
+        if (!first) announce("新的一轮开始啦！");
+        render();
+      }
+      function render() {
+        const info = modeInfo[game.mode];
+        titleEl.textContent = info.title;
+        hintEl.textContent = info.hint;
+        document.getElementById("modeCurrent").textContent = "现在玩：" + info.label;
+        if (game.mode === "sequence") renderSequence();
+        if (game.mode === "pairs") renderPairs();
+        if (game.mode === "change") renderChange();
+      }
+      function message(text, type = "") { game.message = text; game.messageType = type; }
+      function messageMarkup() { return '<p class="stage-message ' + game.messageType + '" role="status">' + escapeHtml(game.message) + '</p>'; }
+      function renderSequence() {
+        if (game.stage === "watch") {
+          stageEl.innerHTML =
+            '<p class="stage-message">仔细看一看，记住出现的顺序</p>' +
+            '<div class="sequence-row" aria-label="要记住的顺序">' + game.sequence.map(item => '<span class="memory-chip" aria-label="' + item.name + '">' + item.emoji + '</span>').join("") + '</div>' +
+            '<button class="primary" id="readyButton">我记好啦，开始回想 <span aria-hidden="true">→</span></button>';
+          document.getElementById("readyButton").addEventListener("click", () => {
+            game.stage = "play"; game.input = []; message("按刚才的顺序点选图案。"); render();
+          });
+          return;
+        }
+        if (game.stage === "success") { renderSuccess(); return; }
+        if (game.stage === "retry") { renderRetry(); return; }
+        stageEl.innerHTML =
+          messageMarkup() +
+          '<div class="sequence-row" aria-label="你已经选择的顺序">' + game.sequence.map((_, index) => game.input[index] ? '<span class="memory-chip" aria-label="第 ' + (index + 1) + ' 个">' + game.input[index].emoji + '</span>' : '<span class="memory-chip empty" aria-label="第 ' + (index + 1) + ' 个还没有选择">' + (index + 1) + '</span>').join("") + '</div>' +
+          '<div class="choice-grid" role="group" aria-label="选择图案">' + game.choices.map((item, index) => '<button class="choice" data-choice="' + index + '" aria-label="' + item.name + '" aria-pressed="' + String(game.input.some(pick => pick.emoji === item.emoji)) + '">' + item.emoji + '</button>').join("") + '</div>' +
+          '<div class="small-actions">' + (game.input.length ? '<button class="quiet-button" id="undoButton">↩ 撤回上一张</button>' : "") + '<button class="primary" id="checkButton" ' + (game.input.length === game.sequence.length ? "" : "disabled") + '>我选好啦 ✓</button></div>';
+        stageEl.querySelectorAll("[data-choice]").forEach(button => button.addEventListener("click", () => {
+          if (game.input.length >= game.sequence.length) return;
+          const item = game.choices[Number(button.dataset.choice)];
+          game.input.push(item);
+          message("已经选了 " + game.input.length + " 个，慢慢想。");
+          renderSequence();
+        }));
+        const undoButton = document.getElementById("undoButton");
+        if (undoButton) undoButton.addEventListener("click", () => { game.input.pop(); message("没关系，可以重新选。"); renderSequence(); });
+        document.getElementById("checkButton").addEventListener("click", () => {
+          const correct = game.input.every((item, index) => item.emoji === game.sequence[index].emoji);
+          if (correct) finishRound();
+          else { game.stage = "retry"; message("差一点点！你可以再看一次，想好了再试。", "soft"); renderSequence(); }
+        });
+      }
+      function renderPairs() {
+        if (game.stage === "success") { renderSuccess(); return; }
+        stageEl.innerHTML =
+          messageMarkup() +
+          '<div class="pair-grid" role="group" aria-label="翻开卡片找配对">' + game.pairCards.map((item, index) => {
+            const open = game.opened.includes(index) || game.matched.includes(index);
+            const matched = game.matched.includes(index);
+            return '<button class="pair-card ' + (open ? "open " : "") + (matched ? "matched" : "") + '" data-card="' + index + '" aria-label="' + (open ? item.name : "未翻开的卡片") + '" aria-pressed="' + String(open) + '" ' + (matched || game.locked || (game.opened.length === 2 && !game.opened.includes(index)) ? "disabled" : "") + '>' + (open ? item.emoji : "✦") + '</button>';
+          }).join("") + '</div>' +
+          '<span class="stage-message">找到的好朋友：' + game.matched.length / 2 + ' / ' + game.pairCards.length / 2 + '</span>';
+        stageEl.querySelectorAll("[data-card]").forEach(button => button.addEventListener("click", () => flipCard(Number(button.dataset.card))));
+      }
+      function flipCard(index) {
+        if (game.locked || game.opened.includes(index) || game.matched.includes(index)) return;
+        game.opened.push(index);
+        if (game.opened.length === 2) {
+          game.locked = true;
+          const [a, b] = game.opened.map(i => game.pairCards[i]);
+          if (a.emoji === b.emoji) {
+            game.matched.push(...game.opened);
+            game.opened = [];
+            game.locked = false;
+            message("找到一对好朋友！", "good");
+            if (game.matched.length === game.pairCards.length) { renderPairs(); setTimeout(finishRound, 450); return; }
+          } else {
+            message("这次没配上，记住它们的位置就好。", "soft");
+            renderPairs();
+            setTimeout(() => { game.opened = []; game.locked = false; renderPairs(); }, 850);
+            return;
+          }
+        } else { message("看看这张卡片是谁？", ""); }
+        renderPairs();
+      }
+      function renderChange() {
+        if (game.stage === "watch") {
+          stageEl.innerHTML =
+            '<p class="stage-message">记住小岛上有哪些伙伴</p>' +
+            '<div class="change-grid" aria-label="需要记住的小岛伙伴">' + game.changeBefore.map(item => '<span class="change-tile" aria-label="' + item.name + '">' + item.emoji + '</span>').join("") + '</div>' +
+            '<button class="primary" id="readyButton">准备好啦，看看哪里变了 <span aria-hidden="true">→</span></button>';
+          document.getElementById("readyButton").addEventListener("click", () => { game.stage = "play"; message("哪一格的伙伴换了新模样？"); renderChange(); });
+          return;
+        }
+        if (game.stage === "success") { renderSuccess(); return; }
+        stageEl.innerHTML =
+          messageMarkup() +
+          '<div class="change-grid" role="group" aria-label="选择换了模样的伙伴">' + game.changeAfter.map((item, index) => '<button class="change-tile ' + (game.input[0] === index ? "selected" : "") + '" data-change="' + index + '" aria-label="第 ' + (index + 1) + ' 格，' + item.name + '" aria-pressed="' + String(game.input[0] === index) + '">' + item.emoji + '</button>').join("") + '</div>' +
+          '<button class="primary" id="checkButton" ' + (game.input.length ? "" : "disabled") + '>我找到啦 ✓</button>';
+        stageEl.querySelectorAll("[data-change]").forEach(button => button.addEventListener("click", () => {
+          game.input = [Number(button.dataset.change)];
+          message("选好了，准备告诉我答案吗？"); renderChange();
+        }));
+        document.getElementById("checkButton").addEventListener("click", () => {
+          if (game.input[0] === game.changedAt) finishRound();
+          else { message("再仔细看看每一格，想一想谁换了模样。", "soft"); game.input = []; renderChange(); }
+        });
+      }
+      function renderSuccess() {
+        stageEl.innerHTML =
+          '<span class="success-mark" aria-hidden="true">🌟</span>' +
+          '<p class="stage-message good" style="font-size:16px">' + escapeHtml(game.message || "太棒啦！你记住了！") + '</p>' +
+          '<p class="stage-message">记忆小岛又亮起一颗星。</p>' +
+          '<button class="primary" id="nextButton">再来一轮 <span aria-hidden="true">→</span></button>';
+        document.getElementById("nextButton").addEventListener("click", () => startRound());
+      }
+      function renderRetry() {
+        stageEl.innerHTML =
+          '<span class="big-emoji" aria-hidden="true">🌱</span>' + messageMarkup() +
+          '<div class="small-actions"><button class="quiet-button" id="showAgainButton">👀 再看一次</button><button class="primary" id="tryAgainButton">我想再试试 <span aria-hidden="true">→</span></button></div>';
+        document.getElementById("showAgainButton").addEventListener("click", () => { game.stage = "watch"; message(""); renderSequence(); });
+        document.getElementById("tryAgainButton").addEventListener("click", () => { game.stage = "play"; game.input = []; message("没关系，慢慢来。"); renderSequence(); });
+      }
+      function finishRound() {
+        if (game.stage === "success") return;
+        progress.levels[game.mode] = Math.min(5, progress.levels[game.mode] + 1);
+        progress.stars += 1;
+        progress.rounds += 1;
+        game.stage = "success";
+        game.message = ["真棒！你发现了所有小线索。", "太棒啦！你的记忆小雷达很灵。", "成功啦！认真观察的你真厉害。"][Math.floor(Math.random() * 3)];
+        game.messageType = "good";
+        saveProgress();
+        announce("挑战完成，获得一颗星星！");
+        render();
+      }
+      function announce(text) { announceEl.textContent = text; }
+      function escapeHtml(text) { return String(text).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]); }
+
+      document.querySelectorAll(".mode-tab").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
+      startRound(true);
+    })();
+  </script>
+</body>
+</html>
